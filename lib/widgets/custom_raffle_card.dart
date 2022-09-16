@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:rifa/models/raffle_item.dart';
 
-class CustomRaffleCard extends StatefulWidget {
-  const CustomRaffleCard(
-      {super.key, required this.position, required this.raffleItem});
+import '../models/raffles_provider.dart';
+
+class CustomRaffleCard extends StatelessWidget {
+  CustomRaffleCard(this.raffleItem, {super.key, required this.position});
 
   final int position;
 
-  final RaffleItem raffleItem;
+  RaffleItem raffleItem;
 
-  @override
-  State<CustomRaffleCard> createState() => _CustomRaffleCardState();
-}
-
-class _CustomRaffleCardState extends State<CustomRaffleCard> {
   @override
   Widget build(BuildContext context) {
+    final rafflesProvider = context.read<RafflesProvider>();
+
     return Card(
       color: _setCardColor(),
       child: Padding(
@@ -25,14 +24,13 @@ class _CustomRaffleCardState extends State<CustomRaffleCard> {
           children: [
             Padding(
               padding: const EdgeInsets.all(8),
-              child: Center(child: Text("${widget.position}")),
+              child: Center(child: Text("$position")),
             ),
             Padding(
               padding: const EdgeInsets.all(8),
               child: Center(
-                  child: Text(widget.raffleItem.name.isNotEmpty
-                      ? widget.raffleItem.name
-                      : '')),
+                  child:
+                      Text(raffleItem.name.isNotEmpty ? raffleItem.name : '')),
             ),
             Padding(
               padding: const EdgeInsets.only(left: 50),
@@ -41,7 +39,7 @@ class _CustomRaffleCardState extends State<CustomRaffleCard> {
                 children: [
                   IconButton(
                     padding: EdgeInsets.zero,
-                    onPressed: () => _showNameDialog(context),
+                    onPressed: () => _showNameDialog(context, rafflesProvider),
                     icon: const Icon(Icons.edit_rounded),
                   ),
                   TextButton(
@@ -50,9 +48,13 @@ class _CustomRaffleCardState extends State<CustomRaffleCard> {
                         minimumSize: const Size(20, 20),
                       ),
                       onPressed: () {
-                        !widget.raffleItem.selected
+                        !raffleItem.selected
                             ? null
-                            : {widget.raffleItem.pay = true, setState(() {})};
+                            : {
+                                raffleItem.pay = true,
+                                rafflesProvider.updateRaffleItem(
+                                    raffleItem, position)
+                              };
                       },
                       child: const Text(
                         "Ok",
@@ -64,13 +66,14 @@ class _CustomRaffleCardState extends State<CustomRaffleCard> {
                         minimumSize: const Size(20, 20),
                       ),
                       onPressed: () {
-                        !widget.raffleItem.selected
+                        !raffleItem.selected
                             ? null
                             : {
-                                widget.raffleItem.pay = false,
-                                widget.raffleItem.selected = false,
-                                widget.raffleItem.name = '',
-                                setState(() {})
+                                raffleItem.pay = false,
+                                raffleItem.selected = false,
+                                raffleItem.name = '',
+                                rafflesProvider.updateRaffleItem(
+                                    raffleItem, position)
                               };
                       },
                       child: const Text(
@@ -87,14 +90,14 @@ class _CustomRaffleCardState extends State<CustomRaffleCard> {
   }
 
   Color _setCardColor() {
-    return widget.raffleItem.pay && widget.raffleItem.selected
+    return raffleItem.pay && raffleItem.selected
         ? Colors.lightGreen.shade300
-        : !widget.raffleItem.pay && widget.raffleItem.selected
+        : !raffleItem.pay && raffleItem.selected
             ? Colors.red.shade400
-            : Colors.orange.shade400;
+            : Colors.pink.shade200;
   }
 
-  void _showNameDialog(BuildContext context) {
+  void _showNameDialog(BuildContext context, RafflesProvider rafflesProvider) {
     String auxName = '';
     showDialog(
       context: context,
@@ -110,10 +113,11 @@ class _CustomRaffleCardState extends State<CustomRaffleCard> {
                 auxName.isEmpty
                     ? null
                     : {
-                        widget.raffleItem.name = auxName,
-                        widget.raffleItem.selected = true,
+                        raffleItem.name = auxName,
+                        raffleItem.selected = true,
+                        rafflesProvider.updateRaffleItem(raffleItem, position),
+                        rafflesProvider.getRaffleItem(position),
                         Navigator.pop(context),
-                        setState(() {})
                       };
               },
               child: const Text("Ok"))

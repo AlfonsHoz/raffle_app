@@ -3,18 +3,24 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 class RaffleItem extends ChangeNotifier {
-  final bool pay;
-  final bool selected;
-  final String name;
+  int? id;
+  bool pay;
+  bool selected;
+  String name;
 
-  RaffleItem({required this.pay, required this.selected, required this.name});
+  RaffleItem(
+      {this.id, required this.pay, required this.selected, required this.name});
 
   factory RaffleItem.fromMap(Map<String, dynamic> data) => RaffleItem(
-      pay: data['pay'], selected: data['selected'], name: data['name']);
+      id: data['id'],
+      pay: data['pay'] == 1,
+      selected: data['selected'] == 1,
+      name: data['name']);
 
   Map<String, dynamic> toMap() => {
-        'pay': pay,
-        'selected': selected,
+        'id': id,
+        'pay': pay ? 1 : 0,
+        'selected': selected ? 1 : 0,
         'name': name,
       };
 
